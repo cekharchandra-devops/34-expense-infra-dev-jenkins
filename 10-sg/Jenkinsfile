@@ -43,7 +43,7 @@ pipeline {
                                 '''
                             }
                         }
-                        elseif(params.ACTION == 'destroy'){
+                        else if(params.ACTION == 'destroy'){
                             echo 'Planning to apply infrastructure changes.'
                             withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
                                 sh '''
