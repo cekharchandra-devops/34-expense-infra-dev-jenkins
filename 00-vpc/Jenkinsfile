@@ -75,6 +75,7 @@ pipeline {
                                     terraform apply -auto-approve tfplan
                                 """
                             }
+                            
                         } else if (params.ACTION == 'destroy') {
                             echo "Destroying infrastructure."
                             withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS) {
