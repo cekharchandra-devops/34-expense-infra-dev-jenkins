@@ -100,7 +100,7 @@ pipeline {
                 script {
                     if(params.ACTION == 'apply'){
                         build job: '10-sg', wait: false, parameters: [
-                            [$class: 'ChoiceParameterValue', name: 'ACTION', value: params.ACTION]
+                            string(name: 'ACTION', value: params.ACTION)
                         ]
                     }
                 }
