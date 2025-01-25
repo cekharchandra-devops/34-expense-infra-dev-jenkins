@@ -1,0 +1,112 @@
+pipeline {
+    agent {
+        label 'AGENT-1'
+    }
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+        disableConcurrentBuilds()
+        ansiColor('xterm')
+    }
+    parameters {
+        choice(name: 'ACTION', choices: ['', 'apply', 'destroy'], description: 'Create or destroy infrastructure')
+    }
+    environment {
+         AWS_REGION = 'us-east-1'
+        AWS_CREDENTIALS = 'aws-creds-dev'
+    }
+    stages {
+        stage('check for initial build or without Parameter'){
+            steps{
+                script{
+                    if (!params.ACTION) {
+                        echo "Initial build detected. No action specified. Stopping further stages."
+                        currentBuild.result = 'SUCCESS'
+                        error("No action specified. Aborting pipeline.")
+                    }
+                }
+            }
+        }
+        stage('initialize TF and plan'){
+            steps{
+                script {
+                    try{
+                        if(params.ACTION == 'apply'){
+                            sh '''
+                                cd 70-ecr
+                                terraform init -reconfigure
+                                terraform plan -out=tfplan
+                            '''
+                        }
+                        else if(params.ACTION == 'destroy'){
+                            sh '''
+                                cd 70-ecr
+                                terraform init -reconfigure
+                                terraform plan -destroy -out=tfplan
+                            '''
+                        }
+                    }catch(Exception e){
+                        echo "An error occurred: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                    }
+                }
+            }
+        }
+        stage('Create or Destroy Infra'){
+            steps{
+                script {
+                    try{
+                        if(params.ACTION == 'apply'){
+                            sh '''
+                                cd 70-ecr
+                                terraform apply -auto-approve tfplan
+                            '''
+                        }
+                        else if(params.ACTION == 'destroy'){
+                            sh '''
+                                cd 70-ecr
+                                terraform init -reconfigure
+                                terraform destory -auto-approve
+                            '''
+                        }
+                    } catch (Exception e) {
+                        echo "An error occurred: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                    }
+                }
+            }
+        }
+        stage('Trigger Destroy EKS') {
+            when {
+                expression { return params.ACTION == 'destroy' }
+            }
+            steps {
+                script {
+                    if(params.ACTION == 'destroy'){
+                        build job: '60-alb', wait: false, parameters: [
+                            string(name: 'ACTION', value: params.ACTION)
+                        ]
+                    }
+                }
+            }
+        }
+    }
+
+     post {
+        always {
+            ansiColor('xterm') {
+                echo 'Cleaning up...'
+                deleteDir()
+            }
+        }
+        success {
+            ansiColor('xterm') {
+                echo 'Pipeline succeeded!'
+            }
+        }
+        failure {
+            ansiColor('xterm') {
+                echo 'Pipeline failed!'
+            }
+        }
+    }
+}

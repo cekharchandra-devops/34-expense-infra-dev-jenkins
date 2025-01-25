@@ -92,7 +92,75 @@ pipeline {
                 }
             }
         }
-        stage('Trigger Destory VPC') {
+         stage('Parallel') {
+             when {
+                expression { return params.ACTION == 'apply' }
+            }
+            parallel {
+                stage('BASTION') {
+                    steps {
+                        script {
+                            if(params.ACTION == 'apply'){
+                                build job: '20-bastion', wait: false, parameters: [
+                                    string(name: 'ACTION', value: params.ACTION)
+                                ]
+                            }
+                        }
+                    }
+                }
+                stage('EKS') {
+                    steps {
+                        script {
+                            if(params.ACTION == 'apply'){
+                                build job: '40-eks', wait: false, parameters: [
+                                    string(name: 'ACTION', value: params.ACTION)
+                                ]
+                            }
+                        }
+                    }
+                }
+                stage('RDS') {
+                    steps {
+                        script {
+                            if(params.ACTION == 'apply'){
+                                build job: '30-rds', wait: false, parameters: [
+                                    string(name: 'ACTION', value: params.ACTION)
+                                ]
+                            }
+                        }
+                    }
+                }
+                stage('ECR') {
+                    steps {
+                        build job: '70-ecr', parameters: [string(name: 'ACTION', value: params.ACTION)], wait: false
+                    }
+                }
+            }
+        }
+        stage('Sequential') {
+             when {
+                expression { params.ACTION == 'apply' }
+            }
+            steps {
+                script {
+                    def acm = build job: '50-acm', wait: true, parameters: [
+                        string(name: 'ACTION', value: params.ACTION)
+                    ]
+                    echo "acm is completed: ${acm.result}"
+                    
+                    def alb = build job: '60-alb', wait: false, parameters: [
+                        string(name: 'ACTION', value: params.ACTION)
+                    ]
+                    echo "albb completed: ${alb.result}"
+                    
+                    def cdn = build job: '80-cdn', wait: false, parameters: [
+                        string(name: 'ACTION', value: params.ACTION)
+                    ]
+                    echo "Jcdn completed: ${cdn.result}"
+                }
+            }
+        }
+        stage('Trigger Destroy VPC') {
             when {
                 expression { return params.ACTION == 'destroy' }
             }

@@ -7,15 +7,16 @@ pipeline {
         disableConcurrentBuilds()
         ansiColor('xterm')
     }
-     parameters {
+    parameters {
         choice(name: 'ACTION', choices: ['', 'apply', 'destroy'], description: 'Create or destroy infrastructure')
     }
     environment {
         AWS_REGION = 'us-east-1'
         AWS_CREDENTIALS = 'aws-creds-dev'
     }
-    stages{
-        stage('Check Initial Build or Without Param Action') {
+
+    stages {
+        stage('check for initial build or without param') {
             steps {
                 script {
                     if (!params.ACTION) {
@@ -26,28 +27,23 @@ pipeline {
                 }
             }
         }
-        stage('Initialize and plan Infra') {
-            when {
-                expression { return params.ACTION == 'apply' || params.ACTION == 'destroy' }
-            }
-            steps{
+        stage('initialize and plan TF'){
+            steps {
                 script {
                     try{
                         if(params.ACTION == 'apply'){
-                            echo 'Planning to apply infrastructure changes.'
                             withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
                                 sh '''
-                                    cd 20-bastion
+                                    cd 30-rds
                                     terraform init -reconfigure
                                     terraform plan -out=tfplan
                                 '''
                             }
                         }
                         else if(params.ACTION == 'destroy'){
-                            echo 'Planning to destory infrastructure changes.'
                             withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
                                 sh '''
-                                    cd 20-bastion
+                                    cd 30-rds
                                     terraform init -reconfigure
                                     terraform plan -destroy -out=tfplan
                                 '''
@@ -60,27 +56,22 @@ pipeline {
                 }
             }
         }
-        stage('Create or Destroy') {
-            when {
-                expression { return params.ACTION == 'apply' || params.ACTION == 'destroy' }
-            }
-            steps{
+        stage('create or destroy'){
+            steps {
                 script {
                     try{
                         if(params.ACTION == 'apply'){
-                            echo 'apply infrastructure.'
                             withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
                                 sh '''
-                                    cd 20-bastion
+                                    cd 30-rds
                                     terraform apply -auto-approve tfplan
                                 '''
                             }
                         }
                         else if(params.ACTION == 'destroy'){
-                            echo 'destroy infrastructure.'
                             withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
                                 sh '''
-                                    cd 20-bastion
+                                    cd 30-rds
                                     terraform destroy -auto-approve
                                 '''
                             }
@@ -92,37 +83,15 @@ pipeline {
                 }
             }
         }
-        stage('Trigger Destroy SG') {
-            when {
-                expression { return params.ACTION == 'destroy' }
-            }
-            steps {
-                script {
+        stage('Destory Bastion'){
+            steps{
+                script{
                     if(params.ACTION == 'destroy'){
-                        build job: '10-sg', wait: false, parameters: [
+                        build job: '20-bastion', wait: false, parameters: [
                             string(name: 'ACTION', value: params.ACTION)
                         ]
                     }
                 }
-            }
-        }
-    }
-
-    post {
-        always {
-            ansiColor('xterm') {
-                echo 'Cleaning up...'
-                deleteDir()
-            }
-        }
-        success {
-            ansiColor('xterm') {
-                echo 'Pipeline succeeded!'
-            }
-        }
-        failure {
-            ansiColor('xterm') {
-                echo 'Pipeline failed!'
             }
         }
     }
