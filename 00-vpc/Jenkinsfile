@@ -1,0 +1,71 @@
+pipeline{
+    agent{
+        label 'AGENT-1'
+    }
+    options{
+        disableConcurrentBuilds()
+        timeout(time: 30, unit: 'MINUTES')
+        ansiColor('xterm')
+    }
+    parameters{
+        choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'create or destroy infra')
+    }
+
+    stages {
+        stage('Initialize and Plan') {
+            environment {
+                AWS_REGION = 'us-east-1'
+                AWS_CREDENTIALS = 'aws-creds-dev'
+            }
+            steps{
+                withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS) {
+                    sh """
+                        cd 00-vpc
+                        terraform init -reconfigure
+                        terraform plan -out=tfplan
+                    """
+                }
+            }
+        }
+        stage('Create') {
+            when {
+                expression { return param.ACTION == 'apply' }
+            }
+            environment {
+                AWS_REGION = 'us-east-1'
+                AWS_CREDENTIALS = 'aws-creds-dev'
+            }
+            steps{
+                withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS) {
+                    sh """
+                        cd 00-vpc
+                        terraform apply -auto-approve tfplan
+                    """
+                }
+            }
+        }
+
+         stage('Destroy') {
+            when {
+                expression { return param.ACTION == 'destroy' }
+            }
+            environment {
+                AWS_REGION = 'us-east-1'
+                AWS_CREDENTIALS = 'aws-creds-dev'
+            }
+            steps{
+                withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS) {
+                    sh """
+                        cd 00-vpc
+                        terraform destory -auto-approve
+                    """
+                }
+            }
+        }
+    }
+    post {
+        always {
+            deleteDir()
+        }
+    }
+}
