@@ -29,24 +29,23 @@ pipeline {
         stage('init and plan'){
             steps{
                 script {
-                    try{
-                        if(params.ACTION == 'apply'){
+                    if(params.ACTION == 'apply'){
+                        withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
                             sh '''
                                 cd 80-cdn
                                 terraform init -reconfigure
                                 terraform plan -out=tfplan
                             '''
                         }
-                        else if(params.ACTION == 'destroy'){
+                    }
+                    else if(params.ACTION == 'destroy'){
+                        withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
                             sh '''
                                 cd 80-cdn
                                 terraform init -reconfigure
                                 terraform plan -destroy -out=tfplan
                             '''
                         }
-                    }catch(Exception e){
-                        echo "An error occurred: ${e.message}"
-                        currentBuild.result = 'FAILURE'
                     }
                 }
             }
@@ -56,10 +55,12 @@ pipeline {
                 script {
                     try{
                         if(params.ACTION == 'apply'){
-                            sh '''
-                                cd 80-cdn
-                                terraform apply -auto-approve tfplan
-                            '''
+                            withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
+                                sh '''
+                                    cd 80-cdn
+                                    terraform apply -auto-approve tfplan
+                                '''
+                            }
                         }
                         // else if(params.ACTION == 'destroy'){
                         //     sh '''
@@ -80,15 +81,17 @@ pipeline {
             }
             steps {
                 script {
-                    def repos = ['80-cdn', '70-ecr', '60-alb', '50-acm', '40-eks', '30-rds', '20-bastion', '10-sg', '00-vpc']
-                    for(repo in repos) {
-                        echo "Destroying resources in directory: ${repo}"
-                        sh '''
-                            cd ${repo}
-                            terraform init -reconfigure
-                            terraform destroy -auto-apporve || { echo "Failed to destroy resources in ${repo}"; exit 1; }
-                            cd ..
-                        '''
+                    withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
+                        def repos = ['80-cdn', '70-ecr', '60-alb', '50-acm', '40-eks', '30-rds', '20-bastion', '10-sg', '00-vpc']
+                        for(repo in repos) {
+                            echo "Destroying resources in directory: ${repo}"
+                            sh '''
+                                cd ${repo}
+                                terraform init -reconfigure
+                                terraform destroy -auto-apporve || { echo "Failed to destroy resources in ${repo}"; exit 1; }
+                                cd ..
+                            '''
+                        }
                     }
                 }
             }

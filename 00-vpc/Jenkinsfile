@@ -31,31 +31,26 @@ pipeline {
         stage('Initialize and Plan') {
             steps {
                 script {
-                    try {
-                        if (params.ACTION == 'apply') {
-                            echo "Planning to apply infrastructure changes."
-                            withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS) {
-                                sh """
-                                    cd 00-vpc
-                                    terraform init -reconfigure
-                                    terraform plan -out=tfplan
-                                """
-                            }
-                        } else if (params.ACTION == 'destroy') {
-                            echo "Planning to destroy infrastructure."
-                            withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS) {
-                                sh """
-                                    cd 00-vpc
-                                    terraform init -reconfigure
-                                    terraform plan -destroy -out=tfplan
-                                """
-                            }
-                        } else {
-                            echo "No valid action specified. Skipping further stages."
+                    if (params.ACTION == 'apply') {
+                        echo "Planning to apply infrastructure changes."
+                        withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS) {
+                            sh """
+                                cd 00-vpc
+                                terraform init -reconfigure
+                                terraform plan -out=tfplan
+                            """
                         }
-                    } catch (Exception e) {
-                        echo "An error occurred: ${e.message}"
-                        currentBuild.result = 'FAILURE'
+                    } else if (params.ACTION == 'destroy') {
+                        echo "Planning to destroy infrastructure."
+                        withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS) {
+                            sh """
+                                cd 00-vpc
+                                terraform init -reconfigure
+                                terraform plan -destroy -out=tfplan
+                            """
+                        }
+                    } else {
+                        echo "No valid action specified. Skipping further stages."
                     }
                 }
             }
@@ -66,28 +61,23 @@ pipeline {
             }
             steps {
                 script {
-                    try {
-                        if (params.ACTION == 'apply') {
-                            echo "Applying infrastructure changes."
-                            withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS) {
-                                sh """
-                                    cd 00-vpc
-                                    terraform apply -auto-approve tfplan
-                                """
-                            }
-                            
-                        } else if (params.ACTION == 'destroy') {
-                            echo "Destroying infrastructure."
-                            withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS) {
-                                sh """
-                                    cd 00-vpc
-                                    terraform destroy -auto-approve
-                                """
-                            }
+                    if (params.ACTION == 'apply') {
+                        echo "Applying infrastructure changes."
+                        withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS) {
+                            sh """
+                                cd 00-vpc
+                                terraform apply -auto-approve tfplan
+                            """
                         }
-                    } catch (Exception e) {
-                        echo "An error occurred: ${e.message}"
-                        currentBuild.result = 'FAILURE'
+                        
+                    } else if (params.ACTION == 'destroy') {
+                        echo "Destroying infrastructure."
+                        withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS) {
+                            sh """
+                                cd 00-vpc
+                                terraform destroy -auto-approve
+                            """
+                        }
                     }
                 }
             }

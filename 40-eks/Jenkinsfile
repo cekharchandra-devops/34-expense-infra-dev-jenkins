@@ -11,7 +11,7 @@ pipeline {
         choice(name: 'ACTION', choices: ['', 'apply', 'destroy'], description: 'Create or destroy infrastructure')
     }
     environment {
-         AWS_REGION = 'us-east-1'
+        AWS_REGION = 'us-east-1'
         AWS_CREDENTIALS = 'aws-creds-dev'
     }
     stages {
@@ -29,24 +29,23 @@ pipeline {
         stage('initialize TF and plan'){
             steps{
                 script {
-                    try{
-                        if(params.ACTION == 'apply'){
+                    if(params.ACTION == 'apply'){
+                        withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
                             sh '''
                                 cd 40-eks
                                 terraform init -reconfigure
                                 terraform plan -out=tfplan
                             '''
                         }
-                        else if(params.ACTION == 'destroy'){
+                    }
+                    else if(params.ACTION == 'destroy'){
+                        withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
                             sh '''
                                 cd 40-eks
                                 terraform init -reconfigure
                                 terraform plan -destroy -out=tfplan
                             '''
                         }
-                    }catch(Exception e){
-                        echo "An error occurred: ${e.message}"
-                        currentBuild.result = 'FAILURE'
                     }
                 }
             }
@@ -54,22 +53,21 @@ pipeline {
         stage('Create or Destroy Infra'){
             steps{
                 script {
-                    try{
-                        if(params.ACTION == 'apply'){
+                    if(params.ACTION == 'apply'){
+                        withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
                             sh '''
                                 cd 40-eks
                                 terraform apply -auto-approve tfplan
                             '''
                         }
-                        else if(params.ACTION == 'destroy'){
+                    }
+                    else if(params.ACTION == 'destroy'){
+                        withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
                             sh '''
                                 cd 40-eks
                                 terraform destory -auto-approve
                             '''
                         }
-                    } catch (Exception e) {
-                        echo "An error occurred: ${e.message}"
-                        currentBuild.result = 'FAILURE'
                     }
                 }
             }

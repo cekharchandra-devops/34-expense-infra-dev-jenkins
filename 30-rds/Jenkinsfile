@@ -30,28 +30,23 @@ pipeline {
         stage('initialize and plan TF'){
             steps {
                 script {
-                    try{
-                        if(params.ACTION == 'apply'){
-                            withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
-                                sh '''
-                                    cd 30-rds
-                                    terraform init -reconfigure
-                                    terraform plan -out=tfplan
-                                '''
-                            }
+                    if(params.ACTION == 'apply'){
+                        withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
+                            sh '''
+                                cd 30-rds
+                                terraform init -reconfigure
+                                terraform plan -out=tfplan
+                            '''
                         }
-                        else if(params.ACTION == 'destroy'){
-                            withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
-                                sh '''
-                                    cd 30-rds
-                                    terraform init -reconfigure
-                                    terraform plan -destroy -out=tfplan
-                                '''
-                            }
+                    }
+                    else if(params.ACTION == 'destroy'){
+                        withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
+                            sh '''
+                                cd 30-rds
+                                terraform init -reconfigure
+                                terraform plan -destroy -out=tfplan
+                            '''
                         }
-                    }catch(Exception e){
-                        echo "An error occurred: ${e.message}"
-                        currentBuild.result = 'FAILURE'
                     }
                 }
             }

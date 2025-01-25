@@ -29,7 +29,7 @@ pipeline {
         stage('initialize TF and plan'){
             steps{
                 script {
-                    try{
+                    withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
                         if(params.ACTION == 'apply'){
                             sh '''
                                 cd 60-alb
@@ -44,9 +44,6 @@ pipeline {
                                 terraform plan -destroy -out=tfplan
                             '''
                         }
-                    }catch(Exception e){
-                        echo "An error occurred: ${e.message}"
-                        currentBuild.result = 'FAILURE'
                     }
                 }
             }
@@ -54,7 +51,7 @@ pipeline {
         stage('Create or Destroy Infra'){
             steps{
                 script {
-                    try{
+                    withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS){
                         if(params.ACTION == 'apply'){
                             sh '''
                                 cd 60-alb
@@ -67,9 +64,6 @@ pipeline {
                                 terraform destory -auto-approve
                             '''
                         }
-                    } catch (Exception e) {
-                        echo "An error occurred: ${e.message}"
-                        currentBuild.result = 'FAILURE'
                     }
                 }
             }
