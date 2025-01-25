@@ -101,7 +101,7 @@ pipeline {
                     if(params.ACTION == 'destroy'){
                         build job: '00-vpc', wait: false, parameters: [
                             string(name: 'ACTION', value: params.ACTION)
-                        ], wait: false
+                        ]
                     }
                 }
             }
