@@ -15,10 +15,10 @@ pipeline {
         AWS_CREDENTIALS = 'aws-creds-dev'
     }
     stages{
-        stage('check for initial build or without param ACTION') {
+        stage('Check Initial Build or Without Param Action') {
             steps {
                 script {
-                    if(!param.ACTION){
+                    if (!params.ACTION) {
                         echo "Initial build detected. No action specified. Stopping further stages."
                         currentBuild.result = 'SUCCESS'
                         error("No action specified. Aborting pipeline.")
