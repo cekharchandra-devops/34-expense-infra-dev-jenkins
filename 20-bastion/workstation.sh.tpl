@@ -65,7 +65,7 @@ chmod +x kubens kubectx
 sudo mv kubens kubectx /usr/local/bin
 
 
-  if [ -z "${aws_access_key_id}" ]; then
+if [ -z "${aws_access_key_id}" ]; then
   echo "Error: aws_access_key_id is not set"
   exit 1
 fi
