@@ -27,7 +27,7 @@ pipeline{
                 }
             }
         }
-        stage('Create') {
+        stage('Create Infra') {
             when {
                 expression { return param.ACTION == 'apply' }
             }
@@ -45,7 +45,7 @@ pipeline{
             }
         }
 
-         stage('Destroy') {
+         stage('Destroy Infra') {
             when {
                 expression { return param.ACTION == 'destroy' }
             }
