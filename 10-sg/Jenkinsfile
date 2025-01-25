@@ -138,17 +138,17 @@ pipeline {
             }
             steps {
                 script {
-                    def acm = build job: '50-acm', wait: true, parameters: [
+                    build job: '50-acm', wait: true, parameters: [
                         string(name: 'ACTION', value: params.ACTION)
                     ]
                     echo "acm is completed: ${acm.result}"
                     
-                    def alb = build job: '60-alb', wait: false, parameters: [
+                    build job: '60-alb', wait: false, parameters: [
                         string(name: 'ACTION', value: params.ACTION)
                     ]
                     echo "alb completed: ${alb.result}"
                     
-                    def cdn = build job: '80-cdn', wait: false, parameters: [
+                    build job: '80-cdn', wait: false, parameters: [
                         string(name: 'ACTION', value: params.ACTION)
                     ]
                     echo "cdn completed: ${cdn.result}"
