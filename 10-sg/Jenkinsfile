@@ -92,7 +92,7 @@ pipeline {
                 }
             }
         }
-        stage('Trigger VPC upstream') {
+        stage('Trigger Destory VPC') {
             when {
                 expression { return params.ACTION == 'destroy' }
             }
