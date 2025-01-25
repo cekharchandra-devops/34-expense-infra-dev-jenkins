@@ -8,7 +8,7 @@ pipeline {
         ansiColor('xterm')
     }
     parameters {
-        choice(name: 'ACTION', choices: ['', 'apply', 'destroy'], description: 'Create or destroy infrastructure')
+        choice(name: 'ACTION', choices: ['', 'apply', 'destroy'], description: 'Select Action')
     }
 
     environment {

@@ -15,6 +15,18 @@ pipeline {
         AWS_CREDENTIALS = 'aws-creds-dev'
     }
     stages{
+        stage('Check Trigger Cause') {
+            steps {
+                script {
+                    def buildCause = currentBuild.rawBuild.getCause(hudson.model.Cause$UpstreamCause)
+                    if (buildCause != null) {
+                        echo "This job was triggered by an upstream job: ${buildCause.upstreamProject} #${buildCause.upstreamBuild}"
+                    } else {
+                        echo "This job was triggered manually or by another cause."
+                    }
+                }
+            }
+        }
         stage('Check Initial Build or Without Param Action') {
             steps {
                 script {
