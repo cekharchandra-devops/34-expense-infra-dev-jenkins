@@ -15,19 +15,23 @@ pipeline {
         AWS_REGION = 'us-east-1'
         AWS_CREDENTIALS = 'aws-creds-dev'
     }
-
+    if (!params.ACTION) {
+        echo "Initial build detected. No action specified. Stopping further stages."
+        currentBuild.result = 'SUCCESS'
+        return
+    }
     stages {
-        stage('Check Initial Build') {
-            steps {
-                script {
-                    if (!params.ACTION) {
-                        echo "Initial build detected. No action specified. Stopping further stages."
-                        currentBuild.result = 'SUCCESS'
-                        return
-                    }
-                }
-            }
-        }
+        // stage('Check Initial Build') {
+        //     steps {
+        //         script {
+        //             if (!params.ACTION) {
+        //                 echo "Initial build detected. No action specified. Stopping further stages."
+        //                 currentBuild.result = 'SUCCESS'
+        //                 return
+        //             }
+        //         }
+        //     }
+        // }
         stage('Initialize and Plan') {
             steps {
                 script {
