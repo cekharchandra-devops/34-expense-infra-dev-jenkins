@@ -7,8 +7,8 @@ pipeline {
         disableConcurrentBuilds()
         ansiColor('xterm')
     }
-    parameters {
-        choice(name:'ACTION', choice: ['','apply', 'destroy'], description: 'create or destroy infra')
+     parameters {
+        choice(name: 'ACTION', choices: ['', 'apply', 'destroy'], description: 'Create or destroy infrastructure')
     }
     environment {
         AWS_REGION = 'us-east-1'
@@ -61,7 +61,7 @@ pipeline {
             }
         }
     }
-    
+
     post {
         always {
             ansiColor('xterm') {
