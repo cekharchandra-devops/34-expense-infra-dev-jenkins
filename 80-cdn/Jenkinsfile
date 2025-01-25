@@ -26,7 +26,7 @@ pipeline {
                 }
             }
         }
-        stage('initialize TF and plan'){
+        stage('init and plan'){
             steps{
                 script {
                     try{
@@ -51,7 +51,7 @@ pipeline {
                 }
             }
         }
-        stage('Create or Destroy Infra'){
+        stage('Create Infra'){
             steps{
                 script {
                     try{
@@ -61,13 +61,12 @@ pipeline {
                                 terraform apply -auto-approve tfplan
                             '''
                         }
-                        else if(params.ACTION == 'destroy'){
-                            sh '''
-                                cd 80-cdn
-                                terraform init -reconfigure
-                                terraform destory -auto-approve
-                            '''
-                        }
+                        // else if(params.ACTION == 'destroy'){
+                        //     sh '''
+                        //         cd 80-cdn
+                        //         terraform destory -auto-approve
+                        //     '''
+                        // }
                     } catch (Exception e) {
                         echo "An error occurred: ${e.message}"
                         currentBuild.result = 'FAILURE'
@@ -75,16 +74,21 @@ pipeline {
                 }
             }
         }
-        stage('Trigger Destroy EKS') {
+        stage('Destroy All Infra modules') {
             when {
                 expression { return params.ACTION == 'destroy' }
             }
             steps {
                 script {
-                    if(params.ACTION == 'destroy'){
-                        build job: '70-ecr', wait: false, parameters: [
-                            string(name: 'ACTION', value: params.ACTION)
-                        ]
+                    def repos = ['80-cdn', '70-ecr', '60-alb', '50-acm', '40-eks', '30-rds', '20-bastion', '10-sg', '00-vpc']
+                    for(repo in repos) {
+                        echo "Destroying resources in directory: ${repo}"
+                        sh '''
+                            cd ${repo}
+                            terraform init -reconfigure
+                            terraform destroy -auto-apporve || { echo "Failed to destroy resources in ${repo}"; exit 1; }
+                            cd ..
+                        '''
                     }
                 }
             }

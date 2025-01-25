@@ -160,20 +160,20 @@ pipeline {
                 }
             }
         }
-        stage('Trigger Destroy VPC') {
-            when {
-                expression { return params.ACTION == 'destroy' }
-            }
-            steps {
-                script {
-                    if(params.ACTION == 'destroy'){
-                        build job: '00-vpc', wait: false, parameters: [
-                            string(name: 'ACTION', value: params.ACTION)
-                        ]
-                    }
-                }
-            }
-        }
+        // stage('Trigger Destroy VPC') {
+        //     when {
+        //         expression { return params.ACTION == 'destroy' }
+        //     }
+        //     steps {
+        //         script {
+        //             if(params.ACTION == 'destroy'){
+        //                 build job: '00-vpc', wait: false, parameters: [
+        //                     string(name: 'ACTION', value: params.ACTION)
+        //                 ]
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     post {

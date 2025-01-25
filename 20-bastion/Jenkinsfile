@@ -92,20 +92,20 @@ pipeline {
                 }
             }
         }
-        stage('Trigger Destroy SG') {
-            when {
-                expression { return params.ACTION == 'destroy' }
-            }
-            steps {
-                script {
-                    if(params.ACTION == 'destroy'){
-                        build job: '10-sg', wait: false, parameters: [
-                            string(name: 'ACTION', value: params.ACTION)
-                        ]
-                    }
-                }
-            }
-        }
+        // stage('Trigger Destroy SG') {
+        //     when {
+        //         expression { return params.ACTION == 'destroy' }
+        //     }
+        //     steps {
+        //         script {
+        //             if(params.ACTION == 'destroy'){
+        //                 build job: '10-sg', wait: false, parameters: [
+        //                     string(name: 'ACTION', value: params.ACTION)
+        //                 ]
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     post {

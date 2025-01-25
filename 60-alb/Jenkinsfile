@@ -64,7 +64,6 @@ pipeline {
                         else if(params.ACTION == 'destroy'){
                             sh '''
                                 cd 60-alb
-                                terraform init -reconfigure
                                 terraform destory -auto-approve
                             '''
                         }
@@ -75,20 +74,20 @@ pipeline {
                 }
             }
         }
-        stage('Trigger Destroy EKS') {
-            when {
-                expression { return params.ACTION == 'destroy' }
-            }
-            steps {
-                script {
-                    if(params.ACTION == 'destroy'){
-                        build job: '50-acm', wait: false, parameters: [
-                            string(name: 'ACTION', value: params.ACTION)
-                        ]
-                    }
-                }
-            }
-        }
+        // stage('Trigger Destroy ACM') {
+        //     when {
+        //         expression { return params.ACTION == 'destroy' }
+        //     }
+        //     steps {
+        //         script {
+        //             if(params.ACTION == 'destroy'){
+        //                 build job: '50-acm', wait: false, parameters: [
+        //                     string(name: 'ACTION', value: params.ACTION)
+        //                 ]
+        //             }
+        //         }
+        //     }
+        // }
     }
 
      post {
