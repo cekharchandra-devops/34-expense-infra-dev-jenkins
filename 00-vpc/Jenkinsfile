@@ -8,7 +8,7 @@ pipeline {
         ansiColor('xterm')
     }
     parameters {
-        choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'Create or destroy infrastructure')
+        choice(name: 'ACTION', choices: ['', 'apply', 'destroy'], description: 'Create or destroy infrastructure')
     }
 
     environment {
@@ -41,16 +41,16 @@ pipeline {
                                     terraform plan -out=tfplan
                                 """
                             }
-                        // } else if (params.ACTION == 'destroy') {
-                        //     echo "Planning to destroy infrastructure."
-                        //     withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS) {
-                        //         sh """
-                        //             cd 00-vpc
-                        //             terraform init -reconfigure
-                        //             terraform plan -destroy -out=tfplan
-                        //         """
-                        //     }
-                        // } else {
+                        } else if (params.ACTION == 'destroy') {
+                            echo "Planning to destroy infrastructure."
+                            withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS) {
+                                sh """
+                                    cd 00-vpc
+                                    terraform init -reconfigure
+                                    terraform plan -destroy -out=tfplan
+                                """
+                            }
+                        } else {
                             echo "No valid action specified. Skipping further stages."
                         }
                     } catch (Exception e) {
