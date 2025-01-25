@@ -17,7 +17,6 @@ pipeline {
     }
 
     stages {
-        ansiColor('xterm') {
             node {
                 stage('Check Initial Build') {
                     steps {
@@ -94,7 +93,6 @@ pipeline {
                     }
                 }
             }
-        }
     }
     post {
         always {
