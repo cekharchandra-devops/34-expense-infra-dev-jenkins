@@ -88,7 +88,7 @@ pipeline {
                             sh """
                                 cd ${repo}
                                 terraform init -reconfigure
-                                terraform destroy -auto-apporve || { echo "Failed to destroy resources in ${repo}"; exit 1; }
+                                terraform destroy -auto-approve || { echo "Failed to destroy resources in ${repo}"; exit 1; }
                                 cd ..
                             """
                         }
