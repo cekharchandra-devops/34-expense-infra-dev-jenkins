@@ -85,12 +85,12 @@ pipeline {
                         def repos = ['80-cdn', '70-ecr', '60-alb', '50-acm', '40-eks', '30-rds', '20-bastion', '10-sg', '00-vpc']
                         for(repo in repos) {
                             echo "Destroying resources in directory: ${repo}"
-                            sh '''
+                            sh """
                                 cd ${repo}
                                 terraform init -reconfigure
                                 terraform destroy -auto-apporve || { echo "Failed to destroy resources in ${repo}"; exit 1; }
                                 cd ..
-                            '''
+                            """
                         }
                     }
                 }

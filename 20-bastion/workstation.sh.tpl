@@ -23,6 +23,9 @@ systemctl start docker
 systemctl enable docker
 usermod -aG docker ec2-user
 
+# mysql client
+sudo dnf install mysql -y
+
 # install kubectl
 
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
